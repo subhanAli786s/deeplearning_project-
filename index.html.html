@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radiology Co-Pilot - Project Presentation</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0e1a;
+            --bg-card: #111827;
+            --bg-elevated: #1a2236;
+            --accent: #3b82f6;
+            --accent-light: #60a5fa;
+            --accent-glow: rgba(59, 130, 246, 0.3);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #1e293b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none;
+            padding: 60px 80px;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateX(50px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .slide.prev {
+            display: flex;
+            opacity: 0;
+            transform: translateX(-50px);
+        }
+
+        /* Navigation */
+        .nav-controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            z-index: 1000;
+            align-items: center;
+            background: rgba(17, 24, 39, 0.9);
+            padding: 12px 24px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 18px;
+        }
+
+        .nav-btn:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .slide-counter {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            color: var(--text-muted);
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-light));
+            transition: width 0.3s ease;
+            z-index: 1000;
+        }
+
+        /* Slide Content Styles */
+        .slide-header {
+            margin-bottom: 40px;
+        }
+
+        .slide-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        .slide-title {
+            font-size: 48px;
+            font-weight: 800;
+            line-height: 1.1;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .slide-subtitle {
+            font-size: 22px;
+            color: var(--text-secondary);
+            margin-top: 16px;
+            font-weight: 400;
+        }
+
+        /* Title Slide */
+        .title-slide {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .title-slide .badge {
+            display: inline-block;
+            background: var(--accent-glow);
+            border: 1px solid var(--accent);
+            color: var(--accent-light);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+        }
+
+        .title-slide h1 {
+            font-size: 72px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.05;
+        }
+
+        .title-slide .gradient-text {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .title-slide .subtitle {
+            font-size: 26px;
+            color: var(--text-secondary);
+            margin-bottom: 50px;
+            max-width: 700px;
+        }
+
+        .author-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px 40px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .author-avatar {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .author-info h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .author-info p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        /* Content Grids */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            flex: 1;
+        }
+
+        .content-grid.three-col {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.1);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-elevated);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* Problem Slide */
+        .problem-stats {
+            display: flex;
+            gap: 32px;
+            margin: 30px 0;
+        }
+
+        .stat-box {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--accent);
+            display: block;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 15px;
+            margin-top: 8px;
+        }
+
+        /* Architecture Diagram */
+        .arch-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin: 40px 0;
+            flex: 1;
+        }
+
+        .arch-node {
+            background: var(--bg-card);
+            border: 2px solid var(--accent);
+            border-radius: 16px;
+            padding: 24px 28px;
+            text-align: center;
+            min-width: 160px;
+            position: relative;
+        }
+
+        .arch-node .node-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .arch-node h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .arch-node .node-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .arch-arrow {
+            color: var(--accent);
+            font-size: 28px;
+            padding: 0 8px;
+        }
+
+        .arch-output {
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            border: none;
+        }
+
+        /* Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 14px 20px;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            font-size: 15px;
+        }
+
+        .data-table tr:hover td {
+            background: var(--bg-elevated);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .tag-blue { background: rgba(59, 130, 246, 0.15); color: var(--accent-light); }
+        .tag-green { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .tag-amber { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .tag-red { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+
+        /* Timeline */
+        .timeline {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+            flex: 1;
+        }
+
+        .timeline-phase {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timeline-phase::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-light));
+        }
+
+        .timeline-phase h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .timeline-phase .duration {
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .timeline-phase ul {
+            list-style: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .timeline-phase ul li {
+            padding: 4px 0;
+            padding-left: 16px;
+            position: relative;
+        }
+
+        .timeline-phase ul li::before {
+            content: '›';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+
+        /* Two Column Layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            flex: 1;
+            align-items: start;
+        }
+
+        .col-content h3 {
+            font-size: 22px;
+            margin-bottom: 16px;
+            color: var(--accent-light);
+        }
+
+        .col-content ul {
+            list-style: none;
+            color: var(--text-secondary);
+            font-size: 16px;
+            line-height: 2;
+        }
+
+        .col-content ul li {
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .col-content ul li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 12px;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        /* Footer */
+        .slide-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Code block style */
+        .code-block {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-top: 20px;
+        }
+
+        .code-block .comment { color: var(--text-muted); }
+        .code-block .keyword { color: var(--accent-light); }
+        .code-block .string { color: var(--success); }
+
+        /* Highlight box */
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid var(--accent);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 20px 0;
+        }
+
+        .highlight-box h4 {
+            color: var(--accent-light);
+            margin-bottom: 10px;
+        }
+
+        /* ── Responsive ── */
+
+        /* Large tablets / small laptops */
+        @media (max-width: 1200px) {
+            .slide { padding: 40px 48px; }
+            .title-slide h1 { font-size: 52px; }
+            .slide-title { font-size: 36px; }
+            .slide-subtitle { font-size: 18px; }
+            .content-grid.three-col { grid-template-columns: repeat(2, 1fr); }
+            .arch-node { min-width: 120px; padding: 16px 14px; }
+            .arch-node h4 { font-size: 13px; }
+            .stat-number { font-size: 36px; }
+        }
+
+        /* Tablets */
+        @media (max-width: 900px) {
+            .slide { padding: 28px 28px 90px; }
+            .slide-header { margin-bottom: 20px; }
+            .slide-title { font-size: 28px; }
+            .slide-subtitle { font-size: 15px; margin-top: 8px; }
+            .title-slide h1 { font-size: 38px; }
+            .title-slide .subtitle { font-size: 18px; margin-bottom: 28px; }
+
+            /* Grids → single column */
+            .content-grid,
+            .content-grid.three-col { grid-template-columns: 1fr; gap: 14px; }
+            .two-col { grid-template-columns: 1fr; gap: 20px; }
+
+            /* Architecture flow → vertical stack */
+            .arch-flow { flex-direction: column; gap: 4px; margin: 16px 0; }
+            .arch-arrow { transform: rotate(90deg); font-size: 22px; padding: 0; }
+            .arch-node { min-width: 200px; width: 80%; padding: 14px 16px; }
+
+            /* Problem stats → 2×2 grid */
+            .problem-stats { flex-wrap: wrap; gap: 14px; margin: 16px 0; }
+            .stat-box { flex: 1 1 calc(50% - 7px); min-width: 120px; padding: 16px; }
+            .stat-number { font-size: 30px; }
+
+            /* Table → scrollable */
+            .data-table { font-size: 13px; }
+            .data-table th, .data-table td { padding: 10px 12px; }
+
+            /* Code block */
+            .code-block { font-size: 11px; padding: 14px; }
+
+            /* Cards */
+            .card { padding: 18px; }
+            .card h3 { font-size: 16px; }
+            .card p { font-size: 13px; }
+
+            /* Author card */
+            .author-card { padding: 16px 20px; }
+            .author-info h3 { font-size: 16px; }
+
+            /* Highlight box */
+            .highlight-box { padding: 16px; margin: 12px 0; }
+
+            /* Footer */
+            .slide-footer { font-size: 11px; padding-top: 12px; }
+        }
+
+        /* Mobile phones */
+        @media (max-width: 600px) {
+            .slide { padding: 18px 16px 88px; }
+            .slide-title { font-size: 22px; }
+            .slide-subtitle { font-size: 13px; }
+            .slide-header { margin-bottom: 14px; }
+
+            .title-slide h1 { font-size: 28px; line-height: 1.1; }
+            .title-slide .subtitle { font-size: 14px; margin-bottom: 20px; }
+            .title-slide .badge { font-size: 11px; padding: 6px 14px; margin-bottom: 16px; }
+
+            .stat-box { flex: 1 1 100%; }
+            .stat-number { font-size: 36px; }
+
+            .arch-node { width: 90%; }
+
+            /* Research paper cards stack icon+text on mobile */
+            .paper-card-inner { flex-direction: column !important; gap: 12px !important; }
+
+            .problem-stats { gap: 10px; }
+            .data-table th, .data-table td { padding: 8px 10px; font-size: 12px; }
+
+            .nav-controls { padding: 10px 16px; gap: 8px; bottom: 16px; }
+            .nav-btn { width: 34px; height: 34px; font-size: 16px; }
+            .slide-counter { font-size: 12px; min-width: 44px; }
+
+            .col-content ul { font-size: 14px; line-height: 1.8; }
+            .author-avatar { width: 44px; height: 44px; font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <div class="presentation" id="presentation">
+
+        <!-- Slide 1: Title -->
+        <div class="slide title-slide active">
+            <div class="badge">Final Year Project Proposal</div>
+            <h1>
+                <span class="gradient-text">Radiology Co-Pilot</span><br>
+                AI-Powered Brain Tumor<br>Segmentation & Reporting
+            </h1>
+            <p class="subtitle">
+                An explainable, lightweight system that segments brain tumors,<br>
+                visualizes decisions, and generates clinical radiology reports
+            </p>
+            <div class="author-card">
+                <div class="author-avatar">S</div>
+                <div class="author-info">
+                    <h3>Subhan</h3>
+                    <p>MSDS 25055 · Data Science Department</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: The Problem -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-number">01 / Problem</div>
+                <h2 class="slide-title">Why This Matters</h2>
+                <p class="slide-subtitle">The critical gap in modern radiology workflows</p>
+            </div>
+
+            <div class="problem-stats">
+                <div class="stat-box">
+                    <span class="stat-number">700K+</span>
+                    <div class="stat-label">Brain tumor cases diagnosed globally each year</div>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">20+ min</span>
+                    <div class="stat-label">Average time per MRI analysis by radiologist</div>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">30%</span>
+                    <div class="stat-label">Radiologist shortage in developing regions</div>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number">Black Box</span>
+                    <div class="stat-label">Current AI models lack explainability for clinical trust</div>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <h4>🔍 Core Challenge</h4>
+                <p style="color: var(--text-secondary);">Existing AI segmentation tools produce accurate masks but fail to explain <em>why</em> a region was flagged, cannot generate structured clinical reports, and require heavy GPU infrastructure — making them impractical for widespread hospital deployment.</p>
+            </div>
+
+            <div class="slide-footer">
+                <span>Radiology Co-Pilot · Project Proposal</span>
+                <span>Subhan · MSDS 25055</span>
+            </div>
+        </div>
+
+        <!-- Slide 3: Solution Overview -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-number">02 / Solution</div>
+                <h2 class="slide-title">What We Are Building</h2>
+                <p class="slide-subtitle">An end-to-end pipeline from MRI scan to clinical report</p>
+            </div>
+
+            <div class="arch-flow">
+                <div class="arch-node">
+                    <div class="node-icon">🧠</div>
+                    <h4>MRI Input</h4>
+                    <div class="node-desc">Multi-modal MRI<br>T1, T2, FLAIR</div>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node">
+                    <div class="node-icon">🔬</div>
+                    <h4>U-Net Segmentation</h4>
+                    <div class="node-desc">nnU-Net / Swin-UNETR<br>Dice > 0.85</div>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node">
+                    <div class="node-icon">🔥</div>
+                    <h4>XAI Heatmap</h4>
+                    <div class="node-desc">Grad-CAM +<br>Uncertainty Maps</div>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node">
+                    <div class="node-icon">📝</div>
+                    <h4>Medical LLM</h4>
+                    <div class="node-desc">Fine-tuned Llama-3.1<br>Structured Reports</div>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-node arch-output">
+                    <div class="node-icon">⚡</div>
+                    <h4>TurboQuant</h4>
+                    <div class="node-desc" style="color: rgba(255,255,255,0.8);">INT8 / INT4<br>&lt; 8GB VRAM</div>
+                </div>
+            </div>
+
+            <div class="content-grid three-col" style="margin-top: 20px;">
+                <div class="card">
+                    <div class="card-icon" style="color: var(--accent);">🎯</div>
+                    <h3>Segment</h3>
+                    <p>State-of-the-art U-Net architecture precisely delineates tumor boundaries across MRI modalities with high Dice scores.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon" style="color: var(--warning);">💡</div>
+                    <h3>Explain</h3>
+                    <p>Grad-CAM and attention rollouts visualize exactly which image regions influenced the model's decision.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon" style="color: var(--success);">📄</div>
+                    <h3>Report</h3>
+                    <p>Fine-tuned medical LLM generates structured radiology reports: Findings → Impression → Recommendations.</p>
+                </div>
+            </div>
+
+            <div class="slide-footer">
+                <span>Radiology Co-Pilot · Project Proposal</span>
+                <span>Subhan · MSDS 25055</span>
+            </div>
+        </div>
+
+        <!-- Slide 4: Technical Components -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-number">03 / Architecture</div>
+                <h2 class="slide-title">Technical Stack</h2>
+                <p class="slide-subtitle">Component selection and justification</p>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Technology</th>
+                        <th>Purpose</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Segmentation Engine</strong></td>
+                        <td>nnU-Net / Swin-UNETR</td>
+                        <td>3D brain tumor segmentation on BraTS multi-modal MRI</td>
+                        <td><span class="tag tag-blue">Core</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Explainability</strong></td>
+                        <td>Grad-CAM + MC Dropout</td>
+                        <td>Localization heatmaps + uncertainty quantification</td>
+                        <td><span class="tag tag-green">Critical</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Report Generation</strong></td>
+                        <td>Llama-3.1-8B (fine-tuned)</td>
+                        <td>Constrained clinical report generation from segmentation outputs</td>
+                        <td><span class="tag tag-blue">Core</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Optimization</strong></td>
+                        <td>TensorRT / GPTQ / AWQ</td>
+                        <td>INT8 U-Net + INT4 LLM for edge deployment</td>
+                        <td><span class="tag tag-amber">TurboQuant</span></td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+            <div class="code-block" style="margin-top: 24px;">
+<span class="comment"># Constrained Report Generation Pipeline</span>
+<span class="keyword">def</span> generate_report(segmentation_mask, uncertainty_map):
+    findings = extract_structured_findings(mask)      <span class="comment"># U-Net output</span>
+    <span class="keyword">if</span> uncertainty_map.max() > threshold:
+        <span class="keyword">return</span> <span class="string">"This region requires manual radiologist review."</span>
+    prompt = build_clinical_prompt(findings)           <span class="comment"># Structured input</span>
+    <span class="keyword">return</span> llm.generate(prompt, schema=report_schema) <span class="comment"># Constrained output</span>
+            </div>
+
+            <div class="slide-footer">
+                <span>Radiology Co-Pilot · Project Proposal</span>
+                <span>Subhan · MSDS 25055</span>
+            </div>
+        </div>
+
+        <!-- Slide 5: Why Not Drop XAI? -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-number">04 / Rationale</div>
+                <h2 class="slide-title">Why Keep Explainability?</h2>
+                <p class="slide-subtitle">XAI is not optional in medical AI — here's why</p>
+            </div>
+
+            <div class="two-col">
+                <div class="col-content">
+                    <h3>❌ Without XAI</h3>
+                    <ul>
+                        <li>Black-box predictions clinicians cannot trust</li>
+                        <li>FDA / EMA regulatory rejection</li>
+                        <li>No accountability for misdiagnosis</li>
+                        <li>Impossible to audit model behavior</li>
+                        <li>Clinicians abandon the tool</li>
+                        <li>Legal liability issues</li>
+                    </ul>
+                </div>
+                <div class="col-content">
+                    <h3>✅ With XAI</h3>
+                    <ul>
+                        <li>Visual proof for every prediction</li>
+                        <li>Regulatory compliance pathway</li>
+                        <li>Transparent decision audit trail</li>
+                        <li>Uncertainty flags low-confidence cases</li>
+                        <li>Clinician adoption and trust</li>
+                        <li>Educational value for training</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 30px;">
+                <h4>🎓 Academic & Clinical Value</h4>
+                <p style="color: var(--text-secondary);">Explainability transforms our project from a "black-box classifier" into a <strong>teachable, auditable clinical assistant</strong>. For your university defense, XAI demonstrates deep understanding of AI safety, ethics, and real-world deployment constraints — distinguishing your work from standard segmentation projects.</p>
+            </div>
+
+            <div class="slide-footer">
+                <span>Radiology Co-Pilot · Project Proposal</span>
+                <span>Subhan · MSDS 25055</span>
+            </div>
+        </div>
+
+        <!-- Slide 6: 50% Data Strategy -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-number">05 / Strategy</div>
+                <h2 class="slide-title">50% Data for Fast Development</h2>
+                <p class="slide-subtitle">Accelerating iteration with a strategic data subset</p>
+            </div>
+
+            <div class="content-grid" style="margin-bottom: 24px;">
+                <div class="card">
+                    <div class="card-icon" style="color: var(--accent);">⚡</div>
+                    <h3>Why 50% First?</h3>
+                    <p>Training on the full BraTS 2024 dataset is computationally expensive. Using a 50% stratified subset cuts initial training time by ~2× while preserving tumor-class distribution — enabling rapid prototyping and architecture search.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon" style="color: var(--success);">🎯</div>
+                    <h3>Stratified Sampling</h3>
+                    <p>Cases are selected using stratified random sampling across tumor grades (LGG / HGG) and MRI acquisition sites to ensure the 50% subset is statistically representative of the full dataset distribution.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon" style="color: var(--warning);">🔬</div>
+                    <h3>Validation Protocol</h3>
+                    <p>The held-out 50% acts as a robust external validation set. Once the model exceeds Dice ≥ 0.80 on the subset, full-dataset fine-tuning is performed to push beyond the 0.85 target.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon" style="color: #8b5cf6);">📈</div>
+                    <h3>Learning Curve Analysis</h3>
+                    <p>We will plot Dice score vs. training set size (10% → 25% → 50% → 100%) to quantify diminishing returns and justify compute trade-offs for resource-constrained settings.</p>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <h4>📊 Expected Outcome of 50% Strategy</h4>
+                <p style="color: var(--text-secondary);">Reach <strong>Dice ≈ 0.82</strong> on 50% data in ~40% of full-training compute → iterate on XAI and LLM components in parallel → final full-data fine-tune achieves target <strong>Dice ≥ 0.85</strong>. This two-stage approach is aligned with best practices in data-efficient medical image segmentation (Isensee et al., 2021).</p>
+            </div>
+
+            <div class="slide-footer">
+                <span>Radiology Co-Pilot · Project Proposal</span>
+                <span>Subhan · MSDS 25055</span>
+            </div>
+        </div>
+
+        <!-- Slide 7: Research Foundation -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-number">06 / Research</div>
+                <h2 class="slide-title">Research Foundation</h2>
+                <p class="slide-subtitle">Core papers powering every component of this project</p>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 28px; flex: 1; justify-content: center;">
+
+                <!-- Segmentation Paper -->
+                <div style="background: var(--bg-card); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 16px; padding: 28px 32px;">
+                    <div class="paper-card-inner" style="display: flex; align-items: center; gap: 28px;">
+                    <div style="font-size: 40px; flex-shrink: 0;">🔬</div>
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                            <span class="tag tag-blue">Segmentation</span>
+                            <span style="color: var(--text-muted); font-size: 13px; font-family: 'JetBrains Mono', monospace;">Nature Methods, 2021</span>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 6px;">nnU-Net: A Self-Configuring Method for Deep Learning-Based Biomedical Image Segmentation</h3>
+                        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 10px;">Isensee et al. — The state-of-the-art self-adapting U-Net that automatically configures itself for any segmentation task, forming the backbone of our BraTS brain tumor pipeline.</p>
+                        <a href="https://www.nature.com/articles/s41592-020-01008-z" target="_blank" style="color: var(--accent-light); font-size: 14px; text-decoration: none;">🔗 nature.com/articles/s41592-020-01008-z →</a>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- XAI Paper -->
+                <div style="background: var(--bg-card); border: 1px solid var(--border); border-left: 4px solid var(--success); border-radius: 16px; padding: 28px 32px;">
+                    <div class="paper-card-inner" style="display: flex; align-items: center; gap: 28px;">
+                    <div style="font-size: 40px; flex-shrink: 0;">🔥</div>
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                            <span class="tag tag-green">XAI</span>
+                            <span style="color: var(--text-muted); font-size: 13px; font-family: 'JetBrains Mono', monospace;">ICCV 2017</span>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 6px;">Grad-CAM: Visual Explanations from Deep Networks via Gradient-Based Localization</h3>
+                        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 10px;">Selvaraju et al. — Produces class-discriminative localization heatmaps that visually explain model decisions, making our segmentation outputs transparent and clinically trustworthy.</p>
+                        <a href="https://arxiv.org/abs/1610.02391" target="_blank" style="color: var(--accent-light); font-size: 14px; text-decoration: none;">🔗 arxiv.org/abs/1610.02391 →</a>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- TurboQuant / Google Paper -->
+                <div style="background: var(--bg-card); border: 1px solid var(--border); border-left: 4px solid var(--warning); border-radius: 16px; padding: 28px 32px;">
+                    <div class="paper-card-inner" style="display: flex; align-items: center; gap: 28px;">
+                    <div style="font-size: 40px; flex-shrink: 0;">⚡</div>
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                            <span class="tag tag-amber">TurboQuant</span>
+                            <span style="color: var(--text-muted); font-size: 13px; font-family: 'JetBrains Mono', monospace;">Google Research, 2026</span>
+                        </div>
+                        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 6px;">Online Vector Quantization with Near-optimal Distortion Rate</h3>
+                        <div style="display: flex; gap: 24px; margin: 10px 0; flex-wrap: wrap;">
+                            <div style="background: rgba(245,158,11,0.12); border: 1px solid var(--warning); border-radius: 10px; padding: 8px 18px; text-align: center;">
+                                <div style="font-size: 26px; font-weight: 800; color: var(--warning);">8×</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">Faster Performance</div>
+                            </div>
+                            <div style="background: rgba(16,185,129,0.12); border: 1px solid var(--success); border-radius: 10px; padding: 8px 18px; text-align: center;">
+                                <div style="font-size: 26px; font-weight: 800; color: var(--success);">0%</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">Accuracy Loss</div>
+                            </div>
+                        </div>
+                        <a href="https://research.google/blog/turboquant-redefining-ai-efficiency-with-extreme-compression/" target="_blank" style="color: var(--accent-light); font-size: 14px; text-decoration: none;">🔗 research.google/blog/turboquant →</a>
+                    </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="slide-footer">
+                <span>Radiology Co-Pilot · Project Proposal</span>
+                <span>Subhan · MSDS 25055</span>
+            </div>
+        </div>
+
+        <!-- Slide 8: Expected Outcomes -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-number">07 / Impact</div>
+                <h2 class="slide-title">Expected Outcomes</h2>
+                <p class="slide-subtitle">What success looks like</p>
+            </div>
+
+            <div class="content-grid three-col">
+                <div class="card">
+                    <div class="card-icon" style="color: var(--accent);">📊</div>
+                    <h3>Quantitative Metrics</h3>
+                    <p>• Segmentation Dice ≥ 0.85<br>• Inference < 3 seconds per scan<br>• Model size < 8GB VRAM<br>• Report BLEU score > 40<br>• Hallucination rate < 5%</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon" style="color: var(--success);">🏥</div>
+                    <h3>Clinical Impact</h3>
+                    <p>• Reduced radiologist analysis time<br>• Standardized report quality<br>• Earlier tumor detection<br>• Deployable in resource-limited settings</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon" style="color: var(--warning);">📚</div>
+                    <h3>Academic Contribution</h3>
+                    <p>• Novel quantized multimodal pipeline<br>• Open-source implementation<br>• Reproducible benchmark<br>• Thesis + potential publication</p>
+                </div>
+            </div>
+
+            <div class="highlight-box" style="margin-top: 30px;">
+                <h4>🚀 Future Extensions</h4>
+                <p style="color: var(--text-secondary);">Post-thesis: Expand to other cancers (lung, liver), integrate with PACS systems, pursue FDA 510(k) pathway for clinical deployment, or pivot to a full vision-language model (LLaVA-Med style) for conversational radiology.</p>
+            </div>
+
+            <div class="slide-footer">
+                <span>Radiology Co-Pilot · Project Proposal</span>
+                <span>Subhan · MSDS 25055</span>
+            </div>
+        </div>
+
+        <!-- Slide 8: Thank You -->
+        <div class="slide title-slide">
+            <div class="badge">Thank You</div>
+            <h1 style="font-size: 64px;">
+                Questions &<br>
+                <span class="gradient-text">Discussion</span>
+            </h1>
+            <p class="subtitle" style="margin-bottom: 40px;">
+                Radiology Co-Pilot: Explainable AI for Brain Tumor<br>
+                Segmentation and Clinical Report Generation
+            </p>
+            <div class="author-card">
+                <div class="author-avatar">S</div>
+                <div class="author-info">
+                    <h3>Subhan</h3>
+                    <p>MSDS 25055 · Data Science Department</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Navigation Controls -->
+    <div class="nav-controls">
+        <button class="nav-btn" onclick="prevSlide()">‹</button>
+        <span class="slide-counter"><span id="currentSlide">1</span> / <span id="totalSlides">8</span></span>
+        <button class="nav-btn" onclick="nextSlide()">›</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        document.getElementById('totalSlides').textContent = totalSlides;
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active', 'prev');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else if (index < currentSlide) {
+                    slide.classList.add('prev');
+                }
+            });
+
+            document.getElementById('currentSlide').textContent = currentSlide + 1;
+            document.getElementById('progressBar').style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            }
+        });
+
+        // Touch support
+        let touchStartX = 0;
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].screenX;
+            if (touchStartX - touchEndX > 50) nextSlide();
+            if (touchEndX - touchStartX > 50) prevSlide();
+        });
+
+        updateSlide();
+    </script>
+</body>
+</html>
